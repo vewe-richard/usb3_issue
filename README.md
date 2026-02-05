@@ -33,8 +33,8 @@ This fix uses a **udev rule** that automatically triggers when a USB device is d
 
 ```bash
 cd /tmp
-git clone https://github.com/YOUR_USERNAME/rpi-cm5-usb-fix.git
-cd rpi-cm5-usb-fix
+git clone https://github.com/vewe-richard/usb3_issue.git
+cd usb3_issue
 sudo ./install.sh
 ```
 
