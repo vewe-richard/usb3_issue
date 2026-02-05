@@ -1,10 +1,6 @@
 # USB VBUS fix for USB-C orientation detection
-# Triggers when USB 3.0 capable device detected on Bus 004 at 480M (high-speed fallback)
-# Only triggers for known USB 3.0 devices to avoid affecting native USB 2.0 devices
-# Toggles VBUS to allow proper CC detection and USB 3.0 negotiation
+# Triggers when ANY USB device detected on Bus 004 at 480M (high-speed)
+# Script uses lockfile to prevent repeated triggers on same device
+# USB 3.0 devices will reconnect at 5000M, USB 2.0 devices stay at 480M
 
-# Realtek RTL9210 USB NVMe adapter (USB 3.0 capable)
-ACTION=="add", SUBSYSTEM=="usb", ATTRS{busnum}=="4", ATTR{speed}=="480", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="9210", RUN+="/usr/local/bin/usb-vbus-udev.sh"
-
-# Add more USB 3.0 devices here as needed:
-# ACTION=="add", SUBSYSTEM=="usb", ATTRS{busnum}=="4", ATTR{speed}=="480", ATTRS{idVendor}=="XXXX", ATTRS{idProduct}=="YYYY", RUN+="/usr/local/bin/usb-vbus-udev.sh"
+ACTION=="add", SUBSYSTEM=="usb", ATTRS{busnum}=="4", ATTR{speed}=="480", RUN+="/usr/local/bin/usb-vbus-udev.sh /sys$devpath"
