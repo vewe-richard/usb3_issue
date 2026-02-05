@@ -1,0 +1,5 @@
+# USB VBUS fix for USB-C orientation detection
+# Triggers when USB device detected on Bus 004 (high-speed fallback)
+# Toggles VBUS to allow proper CC detection and USB 3.0 negotiation
+
+ACTION=="add", SUBSYSTEM=="usb", ATTRS{busnum}=="4", ATTR{speed}=="480", RUN+="/usr/local/bin/usb-vbus-udev.sh"
