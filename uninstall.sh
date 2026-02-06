@@ -11,9 +11,10 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# Remove udev script
-echo "Removing udev script..."
+# Remove udev scripts
+echo "Removing udev scripts..."
 rm -f /usr/local/bin/usb-vbus-udev.sh
+rm -f /usr/local/bin/usb-vbus-cleanup.sh
 
 # Remove udev rule
 echo "Removing udev rule..."

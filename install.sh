@@ -11,10 +11,12 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# Copy udev script
-echo "Installing udev script..."
+# Copy udev scripts
+echo "Installing udev scripts..."
 cp usb-vbus-udev.sh /usr/local/bin/
+cp usb-vbus-cleanup.sh /usr/local/bin/
 chmod +x /usr/local/bin/usb-vbus-udev.sh
+chmod +x /usr/local/bin/usb-vbus-cleanup.sh
 
 # Install udev rule
 echo "Installing udev rule..."
@@ -23,7 +25,7 @@ cp 99-usb-vbus-fix.rules /etc/udev/rules.d/
 # Reload udev rules
 echo "Reloading udev rules..."
 udevadm control --reload-rules
-
+sync
 echo ""
 echo "✅ Installation complete!"
 echo ""

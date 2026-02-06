@@ -4,36 +4,37 @@
 # Uses lockfile to prevent repeated triggers on same device
 
 VBUS_GPIO=611
-LOCKFILE="/tmp/usb-vbus-fix.lock"
-LOCK_TIMEOUT=5  # seconds
+LOCKDIR="/tmp/usb-vbus-fix"
 
 # Get device info from udev environment
 DEVPATH="$1"
 VENDOR=""
 PRODUCT=""
-SERIAL=""
 
 if [ -n "$DEVPATH" ]; then
     VENDOR=$(cat "$DEVPATH/idVendor" 2>/dev/null)
     PRODUCT=$(cat "$DEVPATH/idProduct" 2>/dev/null)
-    SERIAL=$(cat "$DEVPATH/serial" 2>/dev/null)
 fi
 
-DEVICE_ID="${VENDOR}:${PRODUCT}:${SERIAL}"
+DEVICE_ID="${VENDOR}-${PRODUCT}"
+LOCKFILE="${LOCKDIR}/${DEVICE_ID}.lock"
 
-# Check if we recently processed this device
+# Create lock directory if it doesn't exist
+mkdir -p "$LOCKDIR"
+
+logger -t usb-vbus-fix "Device $DEVICE_ID detected at 480M"
+
+# Check if we already processed this device
+# Lockfile is removed by cleanup script when USB 3.0 device connects at 5000M
+# For USB 2.0 devices, lockfile stays to prevent reconnection loops
 if [ -f "$LOCKFILE" ]; then
-    LOCK_AGE=$(($(date +%s) - $(stat -c %Y "$LOCKFILE" 2>/dev/null || echo 0)))
-    LOCKED_DEVICE=$(cat "$LOCKFILE" 2>/dev/null)
-
-    # If same device and lock is recent, skip
-    if [ "$LOCKED_DEVICE" = "$DEVICE_ID" ] && [ "$LOCK_AGE" -lt "$LOCK_TIMEOUT" ]; then
-        exit 0
-    fi
+    logger -t usb-vbus-fix "Device $DEVICE_ID already processed, skipping"
+    exit 0
 fi
 
 # Create lockfile for this device
-echo "$DEVICE_ID" > "$LOCKFILE"
+touch "$LOCKFILE"
+logger -t usb-vbus-fix "Triggering VBUS fix for $DEVICE_ID"
 
 # Trigger the VBUS fix
 # This will help USB 3.0 devices that are falling back to 480M
@@ -41,15 +42,6 @@ echo "$DEVICE_ID" > "$LOCKFILE"
 
 # Use sysfs GPIO control
 GPIO_PATH="/sys/class/gpio/gpio${VBUS_GPIO}"
-
-# If GPIO is controlled by kernel module, skip
-if [ -d "$GPIO_PATH" ] && grep -q "usb_vbus_en" /sys/kernel/debug/gpio 2>/dev/null; then
-    # GPIO owned by module, use module approach
-    rmmod usb_vbus_fix 2>/dev/null
-    sleep 0.1
-    insmod /lib/modules/$(uname -r)/kernel/drivers/usb/usb_vbus_fix.ko 2>/dev/null
-    exit 0
-fi
 
 # Otherwise use sysfs approach
 if [ ! -d "$GPIO_PATH" ]; then
@@ -59,7 +51,7 @@ fi
 
 echo out > ${GPIO_PATH}/direction 2>/dev/null
 echo 0 > ${GPIO_PATH}/value 2>/dev/null
-sleep 0.5
+sleep 0.3
 echo 1 > ${GPIO_PATH}/value 2>/dev/null
 
 exit 0

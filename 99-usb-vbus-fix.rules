@@ -4,3 +4,6 @@
 # USB 3.0 devices will reconnect at 5000M, USB 2.0 devices stay at 480M
 
 ACTION=="add", SUBSYSTEM=="usb", ATTRS{busnum}=="4", ATTR{speed}=="480", RUN+="/usr/local/bin/usb-vbus-udev.sh /sys$devpath"
+
+# Clean up lockfile when device successfully connects at 5000M (USB 3.0)
+ACTION=="add", SUBSYSTEM=="usb", ATTRS{busnum}=="5", ATTR{speed}=="5000", RUN+="/usr/local/bin/usb-vbus-cleanup.sh /sys$devpath"
