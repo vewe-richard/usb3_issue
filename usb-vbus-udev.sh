@@ -14,6 +14,15 @@ PRODUCT=""
 if [ -n "$DEVPATH" ]; then
     VENDOR=$(cat "$DEVPATH/idVendor" 2>/dev/null)
     PRODUCT=$(cat "$DEVPATH/idProduct" 2>/dev/null)
+
+    # Check if device is directly connected to root hub
+    # Direct connections have devpath like "1" or "2"
+    # Hub connections have devpath like "1.2" or "1.3.4"
+    DEVICE_DEVPATH=$(cat "$DEVPATH/devpath" 2>/dev/null)
+    if [[ "$DEVICE_DEVPATH" == *.* ]]; then
+        logger -t usb-vbus-fix "Device connected through hub (devpath=$DEVICE_DEVPATH), skipping"
+        exit 0
+    fi
 fi
 
 DEVICE_ID="${VENDOR}-${PRODUCT}"
@@ -22,7 +31,7 @@ LOCKFILE="${LOCKDIR}/${DEVICE_ID}.lock"
 # Create lock directory if it doesn't exist
 mkdir -p "$LOCKDIR"
 
-logger -t usb-vbus-fix "Device $DEVICE_ID detected at 480M"
+logger -t usb-vbus-fix "Device $DEVICE_ID detected at 480M (devpath=$DEVICE_DEVPATH)"
 
 # Check if we already processed this device
 # Lockfile is removed by cleanup script when USB 3.0 device connects at 5000M

@@ -1,5 +1,6 @@
 # USB VBUS fix for USB-C orientation detection
-# Triggers when ANY USB device detected on Bus 004 at 480M (high-speed)
+# Triggers when USB device detected on Bus 004 at 480M (high-speed)
+# Script checks if device is directly connected to root hub (not through external hubs)
 # Script uses lockfile to prevent repeated triggers on same device
 # USB 3.0 devices will reconnect at 5000M, USB 2.0 devices stay at 480M
 
