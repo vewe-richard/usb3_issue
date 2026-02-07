@@ -8,21 +8,24 @@ LOCKDIR="/tmp/usb-vbus-fix"
 
 # Get device info from udev environment
 DEVPATH="$1"
-VENDOR=""
-PRODUCT=""
 
-if [ -n "$DEVPATH" ]; then
-    VENDOR=$(cat "$DEVPATH/idVendor" 2>/dev/null)
-    PRODUCT=$(cat "$DEVPATH/idProduct" 2>/dev/null)
+# Step 1: Check if DEVPATH is empty
+if [ -z "$DEVPATH" ]; then
+    logger -t usb-vbus-fix "DEVPATH is empty, skipping"
+    exit 0
+fi
 
-    # Check if device is directly connected to root hub
-    # Direct connections have devpath like "1" or "2"
-    # Hub connections have devpath like "1.2" or "1.3.4"
-    DEVICE_DEVPATH=$(cat "$DEVPATH/devpath" 2>/dev/null)
-    if [[ "$DEVICE_DEVPATH" == *.* ]]; then
-        logger -t usb-vbus-fix "Device connected through hub (devpath=$DEVICE_DEVPATH), skipping"
-        exit 0
-    fi
+# Step 2: Get device identifiers
+VENDOR=$(cat "$DEVPATH/idVendor" 2>/dev/null)
+PRODUCT=$(cat "$DEVPATH/idProduct" 2>/dev/null)
+
+# Step 3: Check if device is directly connected to root hub
+# Direct connections have devpath like "1" or "2"
+# Hub connections have devpath like "1.2" or "1.3.4"
+DEVICE_DEVPATH=$(cat "$DEVPATH/devpath" 2>/dev/null)
+if [[ "$DEVICE_DEVPATH" == *.* ]]; then
+    logger -t usb-vbus-fix "Device connected through hub (devpath=$DEVICE_DEVPATH), skipping"
+    exit 0
 fi
 
 DEVICE_ID="${VENDOR}-${PRODUCT}"
